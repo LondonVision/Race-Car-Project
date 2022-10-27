@@ -1,0 +1,212 @@
+import java.util.Scanner;
+
+import project.Car.Dealer;
+
+public class Main {
+
+	public static void main(String[] args) {
+		new Main();
+	}
+
+	static boolean staySignedIn = false; // this is for the dealership menu to not have to enter the password everytime
+	Scanner scan = new Scanner(System.in); // scanner is accessible throughout the class
+	Customer c = new Customer(null, 0); // this is the user, it gets really created in startSequence
+
+	public Main() {
+
+		createCars();
+
+		int menu = 1; // variable to do the menu
+
+		startSequence();
+
+		System.out.println("Welcome to Logan's world!\nTo enter the options below enter its number");
+		while (menu != 0) {// start of the big menu
+			System.out.println("\nMain Menu\n1: View Statistics\n2: Buy Cars\n3: Race\n4: Dealer\n0: Exit");
+			menu = scan.nextInt();
+			scan.nextLine();
+			while (menu < 0 || menu > 4) { // catches invalid inputs
+				System.out.println("Please choose a valid input.");
+				menu = scan.nextInt();
+			}
+			if (menu == 1) {
+				viewStatsMenu();
+			} else if (menu == 2) {
+				buyMenu();
+			} else if (menu == 3) {
+				raceMenu();
+			} else if (menu == 4) {
+				dealerMenu();
+			}
+
+		}
+		System.out.println("Goodbye.");
+		scan.close();
+		System.exit(0);
+	}
+
+	public void startSequence() {
+		System.out.println("Start? Enter yes or no.");
+		String start = scan.nextLine();
+
+		// catches invalid inputs
+		while (!start.equalsIgnoreCase("yes") && !start.equalsIgnoreCase("no")) {
+			System.out.println("Start? Enter yes or no.");
+			start = scan.nextLine();
+		}
+
+		if (start.equalsIgnoreCase("no")) { // don't start program if they don't want to
+			System.out.println("Goodbye");
+			scan.close();
+			System.exit(0);
+		}
+
+		System.out.println("What is your name?");
+		String name = scan.nextLine();
+		System.out.println("What is your age?");
+		int age = scan.nextInt();
+		c = new Customer(name, age); // creates the user with a name and age that they provide
+		System.out.println("Thank you " + c.getName() + ". You have been given $" + c.getMoney()
+				+ "to start. \nYou may begin.\n\n");
+
+	}
+
+	public void viewStatsMenu() {
+		int stats = 1;
+		System.out.println("Welcome to View Statistics");
+		while (stats != 0) {// inner menu
+			System.out.println("\n1: View owned cars\n2: View unowned cars"
+					+ "\n3: View Balance\n4: View Race History\n0: Return to previous menu");
+			stats = scan.nextInt();
+			while (stats < 0 || stats > 4) { // catches invalid inputs
+				System.out.println("Please choose a valid input.");
+				stats = scan.nextInt();
+			}
+			if (stats == 1) {// owned cars
+				if (c.getCars().size() == 0) { // no cars are owned
+					System.out.println("You don't own any cars.");
+				} else {// at least one car is owned so they are displayed
+					c.displayCars();
+				}
+			} else if (stats == 2) {// unowned cars/dealer's cars
+				if (Dealer.getInventory().size() == 0) { // dealer ran out of cars
+					System.out.println("The Dealer does not have any more cars");
+				} else {// dealer still has cars so they are displayed
+					Dealer.displayInventory();
+				}
+			} else if (stats == 3) {// balance
+				System.out.println("You have: $" + c.getMoney());
+			} else if (stats == 4) {// race history
+				if (c.getRaces().size() == 0) {// no races have happened yet
+					System.out.println("You have not raced yet");
+				} else {// races have happened and are displayed
+					c.displayRaces();
+				}
+			} else {
+				stats = 0;
+			}
+
+		}
+	}
+
+	public void buyMenu() {
+		System.out.println("Here are all the cars you can buy:\nYour balance is: $" + c.getMoney());
+		Dealer.displayInventory();
+		System.out.println("Enter the number in front of the car to potentially buy it.");
+		int buy = scan.nextInt();
+		while (buy < 1 || buy > Dealer.getInventory().size()) {// catches invalid inputs
+			System.out.println("Invalid input. Please enter a valid number.");
+			buy = scan.nextInt();
+		}
+		c.buyCar(buy); // this method is from customer class
+	}
+
+	public void raceMenu() {
+		if (c.getCars().size() == 0) {// if user has no cars they can't race
+			System.out.println("You don't have any cars. Get one and then you can race.");
+		} else {
+			System.out.println("Here are you cars: ");
+			c.displayCars();
+			System.out.println("Which one would you like to race with? Enter its number");
+			int raceCar = scan.nextInt();
+			// scan.nextLine();
+			while (raceCar < 1 || raceCar > c.getCars().size()) {// catches invalid inputs
+				System.out.println("Invalid input. Please enter a valid number.");
+				raceCar = scan.nextInt();
+				scan.nextLine();
+			}
+			System.out.println("How much would you like to bet on this race?"
+					+ "\nIf you win you will get 10 times your bet." + "\nYou have a balance of $" + c.getMoney());
+			int entry = scan.nextInt();
+			while (entry < 0 || entry > c.getMoney()) { // catches invalid inputs
+				System.out.println("Please enter a number that you can afford.");
+				entry = scan.nextInt();
+			}
+			System.out.println("You entered the race with " + c.getCars().get(raceCar - 1)
+					+ "\nYou paid an entry fee of $" + entry);
+			Race r = new Race(entry, c.getCars().get(raceCar - 1)); // creation of a new race
+			c.addRace(r);
+			System.out.println("Vroom Vroom.\nYour race: " + r);
+			c.setMoney(c.getMoney() + r.getProfit()); // adds/subtracts profit to/from user
+		}
+	}
+
+	public void dealerMenu() {
+		String password = "";
+		if (!staySignedIn) { // sign in to access this data
+			System.out.println("In order to view the car dealership's data you must enter the correct password."
+					+ "\nWhat is the password?");
+			password = scan.nextLine();
+			if (password.equals("password123")) { // correct password
+				System.out.println("Would you like to stay signed in? Enter yes or no.");
+				String stay = scan.nextLine();
+				while (!stay.equalsIgnoreCase("yes") && !stay.equalsIgnoreCase("no")) {// catches invalid inputs
+					System.out.println("Enter a valid input.");
+					stay = scan.nextLine();
+				}
+				if (stay.equalsIgnoreCase("yes")) {// user would like to stay signed in so they don't have to enter
+													// password again
+					staySignedIn = true;
+				}
+			} else {// password inputed was incorrect
+				System.out.println("Incorrect.");
+			}
+		}
+		if (staySignedIn || password.equals("password123")) { // if either are true user can enter dealership data
+			int dealerMenu = 1;
+			while (dealerMenu != 0) {
+				System.out.println("\nWelcome to the Dealership's data."
+						+ "\n1: View Inventory\n2: View Receipts\n3: View total Money\n0: Exit");
+				dealerMenu = scan.nextInt();
+				while (dealerMenu < 0 || dealerMenu > 3) {// catches invalid inputs
+					System.out.println("Invalid input. Please enter a valid one");
+					dealerMenu = scan.nextInt();
+				}
+				if (dealerMenu == 1) {// view inventory
+					if (Dealer.getInventory().size() == 0) {// dealership ran out of cars
+						System.out.println("The Dealership has no more cars");
+					} else {// dealership still has cars so they can be displayed
+						Dealer.displayInventory();
+					}
+				} else if (dealerMenu == 2) {// view receipts
+					if (Dealer.getReceipts().size() == 0) {// if no cars have been sold yet
+						System.out.println("The Dealership has not sold any cars yet");
+					} else {// at least one car was sold so the receipts can be displayed
+						Dealer.displayReceipts();
+					}
+				} else if (dealerMenu == 3) {// total money
+					System.out.println("Dealer Total Money: $" + Dealer.getTotalMoney());
+				}
+			}
+		}
+	}
+
+	public void createCars() {// cars are created and then sorted using a compareTo sorter
+		Car c1 = new Car("Honda", "Civic", 2021, true, 1.5, 4, 18, 9, 41);
+		Car c2 = new Car("Bugatti", "La Voiture Noire", 2019, true, 8.0, 16, 18, 10, 40);
+		Car c3 = new Car("Nissan", "Sentra", 2021, false, 1.6, 4, 18, 8, 38);
+		Car c4 = new Car("Ford", "Escape", 2019, true, 2.0, 4, 16, 7, 39);
+		Car c5 = new Car("Honda", "Pilot", 2016, true, 3.5, 6, 17, 6, 42);
+		Dealer.sortCarsIncreasing();
+	}
+}
