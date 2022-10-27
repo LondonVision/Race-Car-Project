@@ -67,7 +67,7 @@ public class Main {
 		int age = scan.nextInt();
 		c = new Customer(name, age); // creates the user with a name and age that they provide
 		System.out.println("Thank you " + c.getName() + ". You have been given $" + c.getMoney()
-				+ "to start. \nYou may begin.\n\n");
+				+ " to start. \nYou may begin.\n\n");
 
 	}
 
